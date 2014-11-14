@@ -2,7 +2,7 @@
   "name": "grunt-concat-json",
   "homepage": "http://github.com/SpringRoll/grunt-concat-json",
   "description": "Grunt Task for Merging Multiple JSON Files",
-  "version": "0.10.0",
+  "version": "0.0.1",
   "license": "MIT",
   "author": {
     "name": "Ralf S. Engelschall",
