@@ -1,3 +1,2 @@
 Gruntfile.js
-jshint.json
-Makefile
+.travis.yml

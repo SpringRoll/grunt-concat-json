@@ -1,10 +1,10 @@
-# grunt-concat-json
+# grunt-concat-json [![Build Status](https://travis-ci.org/SpringRoll/grunt-concat-json.svg)](https://travis-ci.org/SpringRoll/grunt-concat-json) [![Dependency Status](https://david-dm.org/SpringRoll/grunt-concat-json.svg)](https://david-dm.org/SpringRoll/grunt-concat-json)
 
 Grunt Task for Merging Multiple JSON Files
 
 ## Getting Started
 
-This plugin requires Grunt `~0.4.0`
+This plugin requires Grunt `~0.4.5`
 
 If you haven't used [Grunt](http://gruntjs.com/)
 before, be sure to check out the [Getting
