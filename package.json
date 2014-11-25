@@ -30,7 +30,7 @@
 		"grunt": "~0.4.5"
 	},
 	"dependencies": {
-		"chalk": "~0.3.0",
+		"chalk": "~0.5.1",
 		"strip-json-comments": "~1.0.1",
 		"jsonlint": "~1.6.2"
 	},
