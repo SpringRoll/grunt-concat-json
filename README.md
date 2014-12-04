@@ -1,4 +1,4 @@
-# grunt-concat-json [![Build Status](https://travis-ci.org/SpringRoll/grunt-concat-json.svg)](https://travis-ci.org/SpringRoll/grunt-concat-json) [![Dependency Status](https://david-dm.org/SpringRoll/grunt-concat-json.svg)](https://david-dm.org/SpringRoll/grunt-concat-json)
+# grunt-concat-json [![Build Status](https://travis-ci.org/SpringRoll/grunt-concat-json.svg)](https://travis-ci.org/SpringRoll/grunt-concat-json) [![Dependency Status](https://david-dm.org/SpringRoll/grunt-concat-json.svg)](https://david-dm.org/SpringRoll/grunt-concat-json) [![npm version](https://badge.fury.io/js/grunt-concat-json.svg)](http://badge.fury.io/js/grunt-concat-json)
 
 Grunt Task for Merging Multiple JSON Files
 
