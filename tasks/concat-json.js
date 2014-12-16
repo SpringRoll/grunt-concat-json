@@ -103,8 +103,8 @@ module.exports = function(grunt)
                     chalk.green(f.dest) +
                     "\"");
                 grunt.file.write(
-					f.dest,
-					JSON.stringify(json, options.replacer, options.space));
+                    f.dest,
+                    JSON.stringify(json, options.replacer, options.space));
                 grunt.log.writeln("File \"" +
                     chalk.green(f.dest) +
                     "\" created.");
