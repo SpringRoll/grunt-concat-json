@@ -6,7 +6,7 @@ var jsonlint = require("jsonlint");
 
 grunt.registerMultiTask("concat-json", "Merge Multiple JSON Files", function()
 {
-//prepare options
+// prepare options
 var options = this.options(
 {
     replacer: null,
@@ -16,20 +16,22 @@ var options = this.options(
 
 grunt.verbose.writeflags(options, "Options");
 
-//iterate over all src-dest file pairs
+// Iterate over all src-dest file pairs
 this.files.forEach(function(f)
 {
     try
     {
-        //start with an empty object
+        // Start with an empty object
         var json = {};
 
-        //save paths of unnamed arrays to prevent duplicates
+        // Save paths of unnamed arrays to prevent duplicates
         var arrDict = {};
 
+        // Add fragments
         f.src.forEach(function(src)
         {
-            //merge JSON file into object
+
+            // Merge JSON file into object
             if (!grunt.file.exists(src))
             {
                 throw "JSON source file \"" + chalk.red(src) + "\" not found.";
@@ -37,28 +39,30 @@ this.files.forEach(function(f)
             else
             {
                 var fragment;
-                grunt.log.debug("reading JSON source file \"" + chalk.green(src) + "\"");
 
                 try
                 {
-                    //read the raw file
+                    // Read the raw file
                     var withComments = grunt.file.read(src);
-                    //strip the file of the comments
+
+                    // Strip the file of the comments
                     var without = stripJsonComments(withComments);
-                    //lint the comment-free file
-                    //if linting errors, terminal will let you know
+
+                    // Lint the comment-free file.
+                    // If linting errors, terminal will let you know!
                     var linted = jsonlint.parse(without);
 
                     fragment = {
                         dir: '',
-                        //Attach comment-less JSON
+                        // Attach comment-less JSON
                         json: linted
                     };
 
-                    //Start a top level
+                    // Start a top level
                     var currentDir = json;
 
-                    //Remove .json extension
+                    // Remove the path to the contianer,
+                    // and the .json extension
                     var path = src.replace(f.base + '/', '').replace('.json', '');
 
                     var test = true;
@@ -67,69 +71,32 @@ this.files.forEach(function(f)
                         test = testDirectory(path, currentDir);
                     }
 
-                    //For each path, drill through each "folder" via the string path.
-                    //If a corresponding object for the folder-name does NOT exist, create it.
-                    //If no folders are left, use the name of the file as the object name.
-                    //Insert json into it's file-name object
+/**
+*
+*
+* @param {String}
+* @param {String}
+*/
                     function testDirectory(_path, _currentDir)
                     {
-                        //test if there a '/', meaning there is a folder
-                        //item in this path
+                        var _currentDirIsArray = Array.isArray(_currentDir);
+
+                        // If the is a slash, we have a parent folder
                         var firstSlash = _path.indexOf('/');
                         if (firstSlash > -1)
                         {
-                            var dir = _path.substr(0, _path.indexOf('/'));
-
-                            var folderIsArray = dir.indexOf(options.folderArrayMarker) > -1;
-                            if (folderIsArray)
+                            var dir = _path.slice(0, firstSlash);
+                            if (grunt.util._.has(_currentDir, dir) === false)
                             {
-                                //strip the folderArrayMarker from the dir
-                                //so it doesn't appear in the json
-                                dir = dir.substr(0, dir.indexOf(options.folderArrayMarker));
+                                _currentDir[dir] = {};
                             }
 
-                            if (!_currentDir[dir])
-                            {
-                                if (folderIsArray)
-                                {
-                                    var dirIsArray = Array.isArray(_currentDir);
-                                    if (dirIsArray)
-                                    {
-                                        if (!arrDict[dir])
-                                        {
-                                            // console.log('adding arrDict['+dir+']');
-                                            arrDict[dir] = [];
-                                            _currentDir.push([]);
-                                        } else {
-                                            // console.log(chalk.red('       arrDict['+dir+']'));
-                                        }
-                                    }
-                                    else
-                                    {
-                                        _currentDir[dir] = [];
-                                    }
-                                }
-                                else
-                                {
-                                    _currentDir[dir] = {};
-                                }
-                            }
-
-                            currentDir = _currentDir[dir] || _currentDir[_currentDir.length-1];
-                            path = _path.substr(_path.indexOf('/') + 1);
+                            currentDir = _currentDir[dir];
+                            path = _path.slice(firstSlash+1);
                             return true;
                         }
 
-                        //if contained by an 'array folder'
-                        if (Array.isArray(_currentDir))
-                        {
-                            _currentDir.push(fragment.json);
-                        }
-                        //using object notation
-                        else
-                        {
-                            _currentDir[_path] = fragment.json;
-                        }
+                        _currentDir[path] =  fragment.json;
                         return false;
                     }
                 }
@@ -140,14 +107,64 @@ this.files.forEach(function(f)
             }
         });
 
-        //write object as new JSON
+        /**
+        * Search the JSON object for the folders (now object keys) that
+        * were marked to be arrays, convert the values to array items.
+        * Process removes the folderArrayMarker from the final JSON file,
+        * so you can access keys in code without the special symbol.
+        * i.e. if folderArrayMarker is the default '[]' then
+        * the "directory[]": key becomes "directory"
+        *
+        * Reminder, if an folder-array is nested in a folder-array, only
+        * the top level folder-array will get a name change, as the children
+        * arrays will become nameless array index items.
+        *
+         * @param {Object} _obj
+         */
+        var convertArrayMarkedFolders = function(_obj)
+        {
+            for (var key in _obj)
+            {
+                // Check all keys for the folderArrayMarker
+                var indexOfMarker = key.indexOf(options.folderArrayMarker);
+                var folderIsArray = indexOfMarker > -1;
+                if (folderIsArray)
+                {
+                    /* Send contents through recursively before doing
+                       the contents copy.
+                       The process removes all but the top level key. */
+                    convertArrayMarkedFolders(_obj[key]);
+                    var contents = _obj[key];
+
+                    /* Push the values one by one of the original key
+                       into a new fresh array who's key has the
+                       folderArrayMarker removed from it */
+                    var keyWithoutMarker = key.slice(0, indexOfMarker);
+                    _obj[keyWithoutMarker] = [];
+                    for (var k in contents)
+                    {
+                       _obj[keyWithoutMarker].push(contents[k]);
+                    };
+
+                    // Delete the original marker key.
+                   delete _obj[key];
+                }
+
+            }
+        };
+
+        convertArrayMarkedFolders(json);
+
+        // Write object as new JSON
         grunt.log.debug(
             "writing JSON destination file \"" +
             chalk.green(f.dest) +
             "\"");
+
         grunt.file.write(
             f.dest,
             JSON.stringify(json, options.replacer, options.space));
+
         grunt.log.writeln("File \"" +
             chalk.green(f.dest) +
             "\" created.");
