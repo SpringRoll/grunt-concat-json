@@ -1,118 +1,161 @@
 module.exports = function(grunt)
 {
-    var chalk = require("chalk");
-    var stripJsonComments = require("strip-json-comments");
-    var jsonlint = require("jsonlint");
+var chalk = require("chalk");
+var stripJsonComments = require("strip-json-comments");
+var jsonlint = require("jsonlint");
 
-    grunt.registerMultiTask("concat-json", "Merge Multiple JSON Files", function()
+grunt.registerMultiTask("concat-json", "Merge Multiple JSON Files", function()
+{
+//prepare options
+var options = this.options(
+{
+    replacer: null,
+    space: "\t",
+    folderArrayMarker : '[]'
+});
+
+grunt.verbose.writeflags(options, "Options");
+
+//iterate over all src-dest file pairs
+this.files.forEach(function(f)
+{
+    try
     {
-        //prepare options
-        var options = this.options(
-        {
-            replacer: null,
-            space: "\t"
-        });
+        //start with an empty object
+        var json = {};
 
-        grunt.verbose.writeflags(options, "Options");
+        //save paths of unnamed arrays to prevent duplicates
+        var arrDict = {};
 
-        //iterate over all src-dest file pairs
-        this.files.forEach(function(f)
+        f.src.forEach(function(src)
         {
-            try
+            //merge JSON file into object
+            if (!grunt.file.exists(src))
             {
-                //start with an empty object
-                var json = {};
+                throw "JSON source file \"" + chalk.red(src) + "\" not found.";
+            }
+            else
+            {
+                var fragment;
+                grunt.log.debug("reading JSON source file \"" + chalk.green(src) + "\"");
 
-                f.src.forEach(function(src)
+                try
                 {
-                    //merge JSON file into object
-                    if (!grunt.file.exists(src))
+                    //read the raw file
+                    var withComments = grunt.file.read(src);
+                    //strip the file of the comments
+                    var without = stripJsonComments(withComments);
+                    //lint the comment-free file
+                    //if linting errors, terminal will let you know
+                    var linted = jsonlint.parse(without);
+
+                    fragment = {
+                        dir: '',
+                        //Attach comment-less JSON
+                        json: linted
+                    };
+
+                    //Start a top level
+                    var currentDir = json;
+
+                    //Remove .json extension
+                    var path = src.replace(f.base + '/', '').replace('.json', '');
+
+                    var test = true;
+                    while (test)
                     {
-                        throw "JSON source file \"" + chalk.red(src) + "\" not found.";
+                        test = testDirectory(path, currentDir);
                     }
-                    else
+
+                    //For each path, drill through each "folder" via the string path.
+                    //If a corresponding object for the folder-name does NOT exist, create it.
+                    //If no folders are left, use the name of the file as the object name.
+                    //Insert json into it's file-name object
+                    function testDirectory(_path, _currentDir)
                     {
-                        var fragment;
-                        grunt.log.debug("reading JSON source file \"" + chalk.green(src) + "\"");
-
-                        try
+                        //test if there a '/', meaning there is a folder
+                        //item in this path
+                        var firstSlash = _path.indexOf('/');
+                        if (firstSlash > -1)
                         {
-                            //read the raw file
-                            var withComments = grunt.file.read(src);
-                            //strip the file of the comments
-                            var without = stripJsonComments(withComments);
-                            //lint the comment-free file
-                            //if linting errors, terminal will let you know
-                            var linted = jsonlint.parse(without);
+                            var dir = _path.substr(0, _path.indexOf('/'));
 
-                            fragment = {
-                                dir: '',
-                                //Attach comment-less JSON
-                                json: linted
-                            };
-
-                            //Start a top level
-                            var currentDir = json;
-
-                            //Remove .json extension
-                            var path = src.replace(f.base + '/', '').replace('.json', '');
-
-                            var test = true;
-                            while (test)
+                            var folderIsArray = dir.indexOf(options.folderArrayMarker) > -1;
+                            if (folderIsArray)
                             {
-                                test = testDirectory(path, currentDir);
+                                //strip the folderArrayMarker from the dir
+                                //so it doesn't appear in the json
+                                dir = dir.substr(0, dir.indexOf(options.folderArrayMarker));
                             }
 
-                            //For each path, drill through each "folder" via the string path.
-                            //If a corresponding object for the folder-name doesn't exist, create it.
-                            //If no folders are left, use the name of the file as the object name.
-                            //Insert json into it's file-name object
-                            function testDirectory(_path, _currentDir)
+                            if (!_currentDir[dir])
                             {
-
-                                var firstSlash = _path.indexOf('/');
-                                if (firstSlash > 0)
+                                if (folderIsArray)
                                 {
-                                    var dir = _path.substr(0, _path.indexOf('/'));
-                                    if (!_currentDir[dir])
+                                    var dirIsArray = Array.isArray(_currentDir);
+                                    if (dirIsArray)
                                     {
-                                        _currentDir[dir] = {};
-                                        json = grunt.util._.extend(json, _currentDir[dir]);
+                                        if (!arrDict[dir])
+                                        {
+                                            // console.log('adding arrDict['+dir+']');
+                                            arrDict[dir] = [];
+                                            _currentDir.push([]);
+                                        } else {
+                                            // console.log(chalk.red('       arrDict['+dir+']'));
+                                        }
                                     }
-                                    currentDir = _currentDir[dir];
-                                    path = _path.substr(_path.indexOf('/') + 1);
-                                    return true;
+                                    else
+                                    {
+                                        _currentDir[dir] = [];
+                                    }
                                 }
-
-                                var insert = _currentDir;
-                                insert[_path] = fragment.json;
-                                return false;
+                                else
+                                {
+                                    _currentDir[dir] = {};
+                                }
                             }
 
+                            currentDir = _currentDir[dir] || _currentDir[_currentDir.length-1];
+                            path = _path.substr(_path.indexOf('/') + 1);
+                            return true;
                         }
-                        catch (e)
-                        {
-                            grunt.fail.warn(e);
-                        }
-                    }
-                });
 
-                //write object as new JSON
-                grunt.log.debug(
-                    "writing JSON destination file \"" +
-                    chalk.green(f.dest) +
-                    "\"");
-                grunt.file.write(
-                    f.dest,
-                    JSON.stringify(json, options.replacer, options.space));
-                grunt.log.writeln("File \"" +
-                    chalk.green(f.dest) +
-                    "\" created.");
-            }
-            catch (e)
-            {
-                grunt.fail.warn(e);
+                        //if contained by an 'array folder'
+                        if (Array.isArray(_currentDir))
+                        {
+                            _currentDir.push(fragment.json);
+                        }
+                        //using object notation
+                        else
+                        {
+                            _currentDir[_path] = fragment.json;
+                        }
+                        return false;
+                    }
+                }
+                catch (e)
+                {
+                    grunt.fail.warn(e);
+                }
             }
         });
-    });
+
+        //write object as new JSON
+        grunt.log.debug(
+            "writing JSON destination file \"" +
+            chalk.green(f.dest) +
+            "\"");
+        grunt.file.write(
+            f.dest,
+            JSON.stringify(json, options.replacer, options.space));
+        grunt.log.writeln("File \"" +
+            chalk.green(f.dest) +
+            "\" created.");
+    }
+    catch (e)
+    {
+        grunt.fail.warn(e);
+    }
+});
+});
 };
