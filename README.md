@@ -77,6 +77,35 @@ Assuming we want to generate the following destination JSON file:
 }
 ```
 
+## Folder-as-Array Example
+
+The contents of a folder can be grouped together as an array. The folder must
+end in a unique symbol, the default is '[]'; For the files
+
+- `src/foo[]/foo1.json`:
+- `src/foo[]/foo2.json`:
+- `src/foo[]/foo3.json`:
+
+```json
+{
+    "foo": [
+        {
+            //contents of foo1.json...
+        },
+        {
+            //contents of foo2.json...
+        },
+        {
+            //contents of foo3.json...
+        },
+    ]
+}
+```
+
+Note, that the .json files in an array folder do retain their file names as keys,
+since they are now array index items.
+
+
 ### Single file per target variant
 
 ```js
@@ -108,4 +137,3 @@ grunt.initConfig({
     }
 });
 ```
-
