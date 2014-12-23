@@ -102,7 +102,7 @@ end in a unique symbol, the default is '[]'; For the files
 }
 ```
 
-Note, that the .json files in an array folder do retain their file names as keys,
+Note, that the .json files in an array folder do not retain their file names as keys,
 since they are now array index items.
 
 
