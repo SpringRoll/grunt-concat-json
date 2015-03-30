@@ -10,7 +10,7 @@ module.exports = function (grunt)
 		var options = this.options(
 		{
 			replacer: null,
-			space: "\t",
+			space: "",
 			folderArrayMarker: '[]'
 		});
 
