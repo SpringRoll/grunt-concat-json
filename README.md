@@ -30,19 +30,20 @@ grunt.loadNpmTasks('grunt-concat-json');
 
 Type: `String`|`Array`
 
-The path to the source JSON files or collection of individual files. For instance: `"src/**/*.json"`, which will include all JSON files in the `src` folder. 
+The path to the source JSON files or collection of individual files. For instance: `"src/**/*.json"`, which will concatenate all JSON files in the `src` folder.
 
 ### dest
 
 Type: `String`
 
-The output, concatenated JSON file. 
+The path to the output concatenated JSON file. 
 
 ### cwd
 
 Type: `String`
+Default: `null`
 
-The base folder to source files from. This will exclude this folder and it's parents from nested layer in the output JSON file. For instance if the `src` property is `"src/**/*.json"`, then `cwd` might be set to `src` to not include `src` as the name of the root property.
+The root folder to source files from. This will exclude this folder and it's parents from nested layer representation in the output JSON file. If `cwd` is set, then the root folder does not need to be specified as part of the `src`.
 
 ## Task Options
 

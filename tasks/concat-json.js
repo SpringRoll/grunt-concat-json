@@ -1,11 +1,12 @@
 module.exports = function (grunt)
 {
-	var chalk = require("chalk");
-	var stripJsonComments = require("strip-json-comments");
-	var jsonlint = require("jsonlint");
-
 	grunt.registerMultiTask("concat-json", "Merge Multiple JSON Files", function ()
 	{
+		var path = require('path');
+		var colors = require("colors");
+		var jsonlint = require("jsonlint");
+		var stripJsonComments = require("strip-json-comments");
+
 		// prepare options
 		var options = this.options(
 		{
@@ -22,24 +23,27 @@ module.exports = function (grunt)
 			try
 			{
 				// Start with an empty object
-				var json = {};
+				var output = {};
 
 				// Save paths of unnamed arrays to prevent duplicates
 				var arrDict = {};
 
 				// Add fragments
-				f.src.forEach(function (src)
+				f.src.forEach(function(src)
 				{
+					// Source file using cwd
+					if (f.cwd)
+					{
+						src = path.join(f.cwd, src);
+					}
 
 					// Merge JSON file into object
 					if (!grunt.file.exists(src))
 					{
-						throw "JSON source file \"" + chalk.red(src) + "\" not found.";
+						throw "JSON source file \"" + src.red + "\" not found.";
 					}
 					else
 					{
-						var fragment;
-
 						try
 						{
 							// Read the raw file
@@ -50,54 +54,32 @@ module.exports = function (grunt)
 
 							// Lint the comment-free file.
 							// If linting errors, terminal will let you know!
-							var linted = jsonlint.parse(without);
-
-							fragment = {
-								dir: '',
-								// Attach comment-less JSON
-								json: linted
-							};
-
-							// Start a top level
-							var currentDir = json;
+							var json = jsonlint.parse(without);
 
 							// Remove the path to the contianer,
 							// and the .json extension
-							var path = src.replace(f.base + '/', '').replace('.json', '');
+							var cwd = f.base || f.cwd; // backward support
+							var target = src.replace(cwd + '/', '')
+								.replace('.json', '')
+								.split('/');
 
-							var test = true;
-							while (test)
+							var key, child = output;
+							while(target.length)
 							{
-								test = testDirectory(path, currentDir);
-							}
+								key = target.shift();
 
-							/**
-							 *
-							 *
-							 * @param {String}
-							 * @param {String}
-							 */
-							function testDirectory(_path, _currentDir)
-							{
-								var _currentDirIsArray = Array.isArray(_currentDir);
-
-								// If the is a slash, we have a parent folder
-								var firstSlash = _path.indexOf('/');
-								if (firstSlash > -1)
+								if (target.length > 0)
 								{
-									var dir = _path.slice(0, firstSlash);
-									if (grunt.util._.has(_currentDir, dir) === false)
+									if (!child[key])
 									{
-										_currentDir[dir] = {};
+										child[key] = {};
 									}
-
-									currentDir = _currentDir[dir];
-									path = _path.slice(firstSlash + 1);
-									return true;
+									child = child[key];
 								}
-
-								_currentDir[path] = fragment.json;
-								return false;
+								else
+								{
+									child[key] = json; // add linted JSON
+								}
 							}
 						}
 						catch (e)
@@ -118,61 +100,61 @@ module.exports = function (grunt)
 				 * Reminder, if an folder-array is nested in a folder-array, only
 				 * the top level folder-array will get a name change, as the children
 				 * arrays will become nameless array index items.
-				 *
-				 * @param {Object} _obj
+				 * 
+				 * @method  convertCollections
+				 * @param {Object} json
 				 */
-				var convertArrayMarkedFolders = function (_obj)
+				var convertCollections = function(json)
 				{
-					if (typeof _obj !== 'object')
+					if (typeof json !== 'object')
 					{
 						return false;
 					}
-
-					for (var key in _obj)
+					for (var key in json)
 					{
-						convertArrayMarkedFolders(_obj[key]);
+						var contents = json[key];
+
+						// Send contents through recursively before doing
+						// the contents copy.
+						// The process removes all but the top level key.
+						convertCollections(contents);
+
 						// Check all keys for the folderArrayMarker
 						var indexOfMarker = key.indexOf(options.folderArrayMarker);
-						var folderIsArray = indexOfMarker > -1;
-						if (folderIsArray)
+						if (indexOfMarker > -1)
 						{
-							/* Send contents through recursively before doing
-							 * the contents copy.
-							 * The process removes all but the top level key. */
-							convertArrayMarkedFolders(_obj[key]);
-
-							var contents = _obj[key];
-							/* Push the values one by one of the original key
-							 * into a new fresh array who's key has the
-							 * folderArrayMarker removed from it */
+							// Push the values one by one of the original key
+							// into a new fresh array who's key has the
+							// folderArrayMarker removed from it
 							var keyWithoutMarker = key.slice(0, indexOfMarker);
-							_obj[keyWithoutMarker] = [];
+							json[keyWithoutMarker] = [];
+
 							for (var k in contents)
 							{
-								_obj[keyWithoutMarker].push(contents[k]);
+								json[keyWithoutMarker].push(contents[k]);
 							}
-
 							// Delete the original marker key.
-							delete _obj[key];
+							delete json[key];
 						}
 					}
 				};
 
-				convertArrayMarkedFolders(json);
+				// Fixed folders marked as arrays
+				convertCollections(output);
 
 				// Write object as new JSON
-				grunt.log.debug(
-					"writing JSON destination file \"" +
-					chalk.green(f.dest) +
-					"\"");
+				grunt.log.debug("Writing JSON destination file \"" + f.dest.green + "\"");
 
 				grunt.file.write(
 					f.dest,
-					JSON.stringify(json, options.replacer, options.space));
+					JSON.stringify(
+						output,
+						options.replacer, 
+						options.space
+					)
+				);
 
-				grunt.log.writeln("File \"" +
-					chalk.green(f.dest) +
-					"\" created.");
+				grunt.log.writeln("File \"" + f.dest.green + "\" created.");
 			}
 			catch (e)
 			{
