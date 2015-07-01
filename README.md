@@ -24,10 +24,48 @@ Gruntfile with this line of JavaScript:
 grunt.loadNpmTasks('grunt-concat-json');
 ```
 
+## Task Properties
+
+### src
+
+Type: `String`|`Array`
+
+The path to the source JSON files or collection of individual files. For instance: `"src/**/*.json"`, which will include all JSON files in the `src` folder. 
+
+### dest
+
+Type: `String`
+
+The output, concatenated JSON file. 
+
+### cwd
+
+Type: `String`
+
+The base folder to source files from. This will exclude this folder and it's parents from nested layer in the output JSON file. For instance if the `src` property is `"src/**/*.json"`, then `cwd` might be set to `src` to not include `src` as the name of the root property.
+
 ## Task Options
 
-- `replacer`: (default `null`) the replacer argument for `JSON.stringify()` (second argument).
-- `space`: (default `\t`) the space argument for `JSON.stringify()` (third argument).
+### options.folderArrayMarker
+
+Type: `String`
+Default: `[]`
+
+The token to use as suffix to a folder name to signify the contents should be rendered as an Array of items and not a Object.
+
+### options.replacer
+
+Type: `function`
+Default: `null` 
+
+The replacer argument for `JSON.stringify()` (second argument).
+
+### options.space
+
+Type: `String`
+Default: `""`
+
+The space argument for `JSON.stringify()` (third argument).
 
 ## Merge JSON Task
 
@@ -40,7 +78,7 @@ Task targets, files and options may be specified according to the Grunt
 
 Assuming we have the following types of source JSON files:
 
-- `src/foo/foo-en.json`:
+`src/foo/foo-en.json`:
 
 ```json
 {
@@ -51,7 +89,7 @@ Assuming we have the following types of source JSON files:
 }
 ```
 
-- `src/bar/bar-en.json`:
+`src/bar/bar-en.json`:
 
 ```json
 {
@@ -62,7 +100,7 @@ Assuming we have the following types of source JSON files:
 }
 ```
 
-Assuming we want to generate the following destination JSON file:
+Will generate the following destination JSON file:
 
 ```json
 {
@@ -86,7 +124,7 @@ end in a unique symbol, the default is '[]'; For the files
 - `src/foo[]/foo2.json`:
 - `src/foo[]/foo3.json`:
 
-```json
+```js
 {
     "foo": [
         {
