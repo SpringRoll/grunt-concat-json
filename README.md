@@ -116,6 +116,49 @@ Will generate the following destination JSON file:
 }
 ```
 
+## Merging of Files and Folders
+
+If a .json file and a folder share the same name, they will be merged into one 
+object when the JSON is concatenated.
+Assuming we have the following source JSON files:
+
+`src/foo.json`:
+
+```json
+{
+    "default": {
+        "title": "The Foo",
+        "name":  "A wonderful component"
+    }
+}
+```
+
+`src/foo/bar.json`:
+
+```json
+{
+    "title": "The Bar",
+    "name":  "An even more wonderful component"
+}
+```
+
+Will generate the following destination JSON file:
+
+```json
+{
+    "foo": {
+        "default": {
+            "title": "The Foo",
+            "name":  "A wonderful component"
+        },
+        "bar": {
+            "title": "The Bar",
+            "name":  "An even more wonderful component"
+        }
+    }
+}
+```
+
 ## Folder-as-Array Example
 
 The contents of a folder can be grouped together as an array. The folder must
