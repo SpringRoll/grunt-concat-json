@@ -56,6 +56,9 @@ module.exports = function (grunt)
 							// If linting errors, terminal will let you know!
 							var json = jsonlint.parse(without);
 
+							// Fix slashes for windows
+							src = src.replace(/\\/g, '/');
+
 							// Remove the path to the contianer,
 							// and the .json extension
 							var cwd = f.base || f.cwd; // backward support
@@ -100,7 +103,7 @@ module.exports = function (grunt)
 				 * Reminder, if an folder-array is nested in a folder-array, only
 				 * the top level folder-array will get a name change, as the children
 				 * arrays will become nameless array index items.
-				 * 
+				 *
 				 * @method  convertCollections
 				 * @param {Object} json
 				 */
@@ -149,7 +152,7 @@ module.exports = function (grunt)
 					f.dest,
 					JSON.stringify(
 						output,
-						options.replacer, 
+						options.replacer,
 						options.space
 					)
 				);
