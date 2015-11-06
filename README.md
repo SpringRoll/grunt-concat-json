@@ -30,13 +30,13 @@ grunt.loadNpmTasks('grunt-concat-json');
 
 Type: `String`|`Array`
 
-The path to the source JSON files or collection of individual files. For instance: `"src/**/*.json"`, which will concatenate all JSON files in the `src` folder.
+The path to the source JSON files or collection of individual files. For instance: `"src/**/*.{json,js}"`, which will concatenate all JSON and JS files in the `src` folder.
 
 ### dest
 
 Type: `String`
 
-The path to the output concatenated JSON file. 
+The path to the output concatenated JSON file.
 
 ### cwd
 
@@ -57,7 +57,7 @@ The token to use as suffix to a folder name to signify the contents should be re
 ### options.replacer
 
 Type: `function`
-Default: `null` 
+Default: `null`
 
 The replacer argument for `JSON.stringify()` (second argument).
 
@@ -118,7 +118,7 @@ Will generate the following destination JSON file:
 
 ## Merging of Files and Folders
 
-If a .json file and a folder share the same name, they will be merged into one 
+If a .json file and a folder share the same name, they will be merged into one
 object when the JSON is concatenated.
 Assuming we have the following source JSON files:
 
@@ -182,6 +182,31 @@ end in a unique symbol, the default is '[]'; For the files
         },
     ]
 }
+```
+
+## Handling JavaScript files
+
+The javascript file can take two forms - either an object literal, or the contents of a function
+where your return value becomes the JSON object for the file.
+
+```js
+{
+    //if the first character is the first character of an object literal, then it is evaluated that
+    //way. This means that if your JSON as JS is set up that way, you can't have whitespace or
+    //a comment as the first text
+    TWO_PI: Math.PI * 2,
+    foo: "bar"
+}
+```
+
+```js
+//other javacript is wrapped within a function, allowing you to create your object however you like
+var rtn;
+for(var i = 100; i > 50; --i)
+    rtn.push(i);
+//The return value here is the final result, which saves us from having to make our array
+//of integer values form 100 to 51 by hand.
+return rtn;
 ```
 
 Note, that the .json files in an array folder do not retain their file names as keys,

@@ -46,16 +46,38 @@ module.exports = function (grunt)
 					{
 						try
 						{
+							var json;
 							// Read the raw file
-							var withComments = grunt.file.read(src);
+							var fileText = grunt.file.read(src);
+							
+							var ext = src.substring(src.lastIndexOf('.') + 1);
+							if(ext == "js")
+							{
+								var firstChar = fileText[0];
+								//detect object literals
+								if(firstChar == '{' || firstChar == '[' || firstChar == '\"' ||
+									firstChar.match(/[0-9]/) || fileText == "false" ||
+									fileText == "true")
+								{
+									eval("json = " + fileText + ";");//jshint ignore:line
+								}
+								//otherwise make a function out of the text and use the
+								//return value
+								else
+								{
+									json = eval("(function(){" + fileText + "})();");//jshint ignore:line
+								}
+							}
+							else
+							{
+								// Strip the file of the comments
+								var withoutComments = stripJsonComments(fileText);
 
-							// Strip the file of the comments
-							var without = stripJsonComments(withComments);
-
-							// Lint the comment-free file.
-							// If linting errors, terminal will let you know!
-							var json = jsonlint.parse(without);
-
+								// Lint the comment-free file.
+								// If linting errors, terminal will let you know!
+								json = jsonlint.parse(withoutComments);
+							}
+							
 							// Fix slashes for windows
 							src = src.replace(/\\/g, '/');
 
@@ -64,6 +86,7 @@ module.exports = function (grunt)
 							var cwd = f.base || f.cwd; // backward support
 							var target = src.replace(cwd + '/', '')
 								.replace('.json', '')
+								.replace('.js', '')
 								.split('/');
 
 							var key, child = output;
