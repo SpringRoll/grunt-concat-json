@@ -184,6 +184,9 @@ end in a unique symbol, the default is '[]'; For the files
 }
 ```
 
+Note, that the .json files in an array folder do not retain their file names as keys,
+since they are now array index items.
+
 ## Handling JavaScript files
 
 The javascript file can take two forms - either an object literal, or the contents of a function
@@ -208,9 +211,6 @@ for(var i = 100; i > 50; --i)
 //of integer values form 100 to 51 by hand.
 return rtn;
 ```
-
-Note, that the .json files in an array folder do not retain their file names as keys,
-since they are now array index items.
 
 
 ### Single file per target variant
