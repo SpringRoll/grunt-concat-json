@@ -1,51 +1,52 @@
 {
-	"name": "grunt-concat-json",
-	"homepage": "http://github.com/SpringRoll/grunt-concat-json",
-	"description": "Grunt Task for Merging Multiple JSON Files",
-	"version": "0.0.10",
-	"license": "MIT",
-	"author": {
-		"name": "Matte Szklarz",
-		"email": "matteszklarz@cloudkid.com",
-		"url": "http://cloudkid.com"
-	},
-	"contributors": [
-		{
-			"name": "Matt Karl",
-			"email": "matt@cloudkid.com",
-			"url": "http://cloudkid.com"
-		}
-	],
-	"keywords": [
-		"gruntplugin",
-		"merge",
-		"json"
-	],
-	"repository": {
-		"type": "git",
-		"url": "git://github.com/SpringRoll/grunt-concat-json.git"
-	},
-	"bugs": {
-		"url": "http://github.com/SpringRoll/grunt-concat-json/issues"
-	},
-	"main": "./tasks/concat-json.js",
-	"devDependencies": {
-		"grunt-contrib-jshint": "~0.7.1",
-		"grunt-simple-version": "~0.2.0"
-	},
-	"peerDependencies": {
-		"grunt": "~0.4.5"
-	},
-	"dependencies": {
-		"colors": "^1.1.2",
-		"jsonlint": "~1.6.2",
-		"strip-json-comments": "~1.0.2"
-	},
-	"engines": {
-		"node": ">=0.10.0"
-	},
-	"scripts": {
-		"test": "grunt test --verbose"
-	},
-	"readmeFilename": "README.md"
+  "name": "grunt-concat-json",
+  "homepage": "http://github.com/SpringRoll/grunt-concat-json",
+  "description": "Grunt Task for Merging Multiple JSON Files",
+  "version": "0.0.10",
+  "license": "MIT",
+  "author": {
+    "name": "Matte Szklarz",
+    "email": "matteszklarz@cloudkid.com",
+    "url": "http://cloudkid.com"
+  },
+  "contributors": [
+    {
+      "name": "Matt Karl",
+      "email": "matt@cloudkid.com",
+      "url": "http://cloudkid.com"
+    }
+  ],
+  "keywords": [
+    "gruntplugin",
+    "merge",
+    "json"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/SpringRoll/grunt-concat-json.git"
+  },
+  "bugs": {
+    "url": "http://github.com/SpringRoll/grunt-concat-json/issues"
+  },
+  "main": "./tasks/concat-json.js",
+  "devDependencies": {
+    "grunt-contrib-jshint": "~0.7.1",
+    "grunt-simple-version": "~0.2.0"
+  },
+  "peerDependencies": {
+    "grunt": "~0.4.5"
+  },
+  "dependencies": {
+    "colors": "^1.1.2",
+    "jsonlint": "~1.6.2",
+    "minimatch": "^3.0.2",
+    "strip-json-comments": "~1.0.2"
+  },
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "scripts": {
+    "test": "grunt test --verbose"
+  },
+  "readmeFilename": "README.md"
 }
