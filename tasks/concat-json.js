@@ -5,6 +5,7 @@ module.exports = function (grunt)
 		var path = require('path');
 		var colors = require("colors");
 		var jsonlint = require("jsonlint");
+		var minimatch = require("minimatch");
 		var stripJsonComments = require("strip-json-comments");
 
 		// prepare options
@@ -22,6 +23,10 @@ module.exports = function (grunt)
 		{
 			try
 			{
+				if (!!f.transforms && f.transforms.length !== f.orig.src.length) {
+					throw "If specifying transforms there must be one per source.";
+				}
+
 				// Start with an empty object
 				var output = {};
 
@@ -31,6 +36,16 @@ module.exports = function (grunt)
 				// Add fragments
 				f.src.forEach(function(src)
 				{
+					// Map src BACK to the original glob to find the index of any
+					// associated transform
+					var idx;
+
+					f.orig.src.every(function(glob, i) {
+						idx = i;
+
+						return !minimatch(src, glob, {matchBase: true});
+					});
+
 					// Source file using cwd
 					if (f.cwd)
 					{
@@ -49,7 +64,7 @@ module.exports = function (grunt)
 							var json;
 							// Read the raw file
 							var fileText = grunt.file.read(src);
-							
+
 							var ext = src.substring(src.lastIndexOf('.') + 1);
 							if(ext == "js")
 							{
@@ -77,17 +92,29 @@ module.exports = function (grunt)
 								// If linting errors, terminal will let you know!
 								json = jsonlint.parse(withoutComments);
 							}
-							
-							// Fix slashes for windows
-							src = src.replace(/\\/g, '/');
 
-							// Remove the path to the contianer,
-							// and the .json extension
-							var cwd = f.base || f.cwd; // backward support
-							var target = src.replace(cwd + '/', '')
-								.replace('.json', '')
-								.replace('.js', '')
-								.split('/');
+							// Remove extensions
+							var target = src.replace('.json', '').replace('.js', '');
+
+							if (!!f.transforms) {
+								// Apply transforms
+								var transform = f.transforms[idx];
+
+								if (typeof transform === "function") {
+									target = transform(target);
+								} else {
+									target = target.replace(transform + path.sep, '');
+								}
+							} else {
+								// Just strip the base path
+								var cwd = f.base || f.cwd; // backward support
+
+								target = target.replace(cwd + path.sep, '');
+							}
+
+							// Fix separators to account for Windows and tokenize the final
+							// target path into the nested JSON structure
+							target = target.replace(/\\/g, '/').split('/');
 
 							var key, child = output;
 							while(target.length)

@@ -38,12 +38,18 @@ Type: `String`
 
 The path to the output concatenated JSON file.
 
-### cwd
+### base
 
 Type: `String`
 Default: `null`
 
-The root folder to source files from. This will exclude this folder and it's parents from nested layer representation in the output JSON file. If `cwd` is set, then the root folder does not need to be specified as part of the `src`.
+The root folder to source files from. This will exclude this folder and it's parents from nested layer representation in the output JSON file. If `base` is set, then the root folder does not need to be specified as part of the `src`. `cwd` may be used as an alias for `base`.
+
+### transforms
+
+Type: `Array`
+
+`base` only goes so far when `src` contains sources from different locations. In these situations, a list of `transforms` may be specified instead: one transform for each element in `src`, in order. Transforms may be strings (in which case they are applied in much the same way as `base`), or functions which take in and return a path string, which then defines the nested JSON structure.
 
 ## Task Options
 
@@ -186,6 +192,43 @@ end in a unique symbol, the default is '[]'; For the files
 
 Note, that the .json files in an array folder do not retain their file names as keys,
 since they are now array index items.
+
+## Using Transforms
+
+Assuming we have the files `source/one.json` and `somewhere/else/there/is/a/file.json`:
+
+```js
+{
+    src: ['source/**/*.json', 'somewhere/else/**/*.json'],
+    transforms: [
+        'source',
+        function(target) {
+            // extensions are stripped so target is 'somewhere/else/there/is/a/file'
+            var filename = target.split(path.sep).pop();        // grab 'file'
+
+            return ['outer', filename, 'inner'].join(path.sep); // return 'outer/file/inner'
+        }
+    ],
+    dest: 'output.json',
+}
+```
+
+The resulting `output.json` is:
+
+```js
+{
+    one: {
+        // contents of one.json
+    },
+    outer: {
+      file: {
+        inner: {
+            // contents of file.json
+        }
+      }
+    }
+}
+```
 
 ## Handling JavaScript files
 
