@@ -30,17 +30,16 @@
   },
   "main": "./tasks/concat-json.js",
   "devDependencies": {
-    "grunt-contrib-jshint": "~0.7.1",
-    "grunt-simple-version": "~0.2.0"
+    "grunt-contrib-jshint": "^1.1.0"
   },
   "peerDependencies": {
-    "grunt": "~0.4.5"
+    "grunt": "~1.0.1"
   },
   "dependencies": {
     "colors": "^1.1.2",
     "jsonlint": "~1.6.2",
     "minimatch": "^3.0.2",
-    "strip-json-comments": "~1.0.2"
+    "strip-json-comments": "^2.0.1"
   },
   "engines": {
     "node": ">=0.10.0"

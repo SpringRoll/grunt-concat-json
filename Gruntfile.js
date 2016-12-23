@@ -18,7 +18,6 @@ module.exports = function(grunt)
             ]
         }
     });
-    grunt.loadNpmTasks('grunt-simple-version');
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.registerTask('test', ['jshint']);
     grunt.registerTask('default', ['test', 'version:current']);
